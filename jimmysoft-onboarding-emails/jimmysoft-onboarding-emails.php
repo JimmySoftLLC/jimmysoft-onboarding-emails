@@ -1,9 +1,9 @@
 <?php
 /**
- * Plugin Name: JimmySoft User Variables
+ * Plugin Name: JimmySoft onboarding emails
  * Plugin URI: https://embroiderywaresoftware.com
  * Description: This plugin sends on boarding sales emails to get the customer to purchase by enticing them with discount coupons.  The email html templates are hereas well as setting for onboarding activities.
- * Version: 1.0.0
+ * Version: 2.0.0
  * Author: Jim Bailey
  * Author URI: https://jimmysoftllc.com
  * License: GPL2
@@ -89,9 +89,7 @@ function jimmysoft_send_onboarding_emails() {
 							$message = str_replace('[coupon-value]',get_option('jimmysoft_product_first_coupon_value').'%',$message);
 						}
 						$message = str_replace('[your-message2]','Expires on: '.$coupon_date_email,$message);						
-						$headers = "MIME-Version: 1.0" . "\r\n";
-						$headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
-						$headers .= 'From: <sales@embroiderywaresoftware.com>' . "\r\n";			
+						$headers = set_headers_for_email();			
 						wp_mail($email,$subject,$message,$headers);	
 					}
 				}
@@ -124,9 +122,7 @@ function jimmysoft_send_onboarding_emails() {
 							$message = str_replace('[coupon-value]',get_option('jimmysoft_product_second_coupon_value').'%',$message);
 					}					
 					$message = str_replace('[your-message2]','Expires on: '.$coupon_date_email,$message);				
-					$headers = "MIME-Version: 1.0" . "\r\n";
-					$headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
-					$headers .= 'From: <sales@embroiderywaresoftware.com>' . "\r\n";			
+					$headers = set_headers_for_email();				
 					wp_mail($email,$subject,$message,$headers);	
 				}
 			}	
@@ -197,29 +193,24 @@ function create_coupon($amount,$coupon_code,$discount_type,$expiry_date,$usage_l
 function delete_expired_onboarding_coupons(){
 	$args = array('posts_per_page'=> -1,'post_type'=> 'shop_coupon','post_status'=>'publish');    
 	$coupons = get_posts( $args );
-	$onboarding_coupon = false;
 	foreach($coupons as $coupon_item){
+		$onboarding_coupon = false;
 		$my_title= $coupon_item->post_title;
-		if (substr($my_title,0,6)=='newbie') {
+		if (substr($my_title,0,5)=='bonus') {
 			$onboarding_coupon = true;
 		}
-		if (substr($my_title,0,7)=='letsbuy') {
-			$onboarding_coupon = true;
-		}	
-		if ($onboarding_coupon==true){
-			$my_expire_date =  new DateTime($coupon_item->expiry_date);
-			$my_current_date = new datetime('NOW');
-			if ($my_expire_date <$my_current_date) {
+		if ($onboarding_coupon == true){
+			$my_date_expires = $coupon_item->date_expires;
+			$my_date_current = time();
+			if ( $my_date_expires < $my_date_current ) {
 				wp_trash_post( $coupon_item->ID );	
-			}					
+			}
 		}			
 	}
 }
 
 function simple_email($message) {
-	$headers = "MIME-Version: 1.0" . "\r\n";
-	$headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
-	$headers .= 'From: <sales@embroiderywaresoftware.com>' . "\r\n";		
+	$headers = set_headers_for_email();			
 	wp_mail('novashort@aol.com','test',$message,$headers);	
 }
 
